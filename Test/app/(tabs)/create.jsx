@@ -1,10 +1,10 @@
-import { View, Text, ScrollView, TextInput, Image } from "react-native";
+import { View, Text, ScrollView, Image, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "../../components/CustomButton";
 import Books from "../../components/Books";
 import FormField from "../../components/FormField";
 import { useEffect, useState } from "react";
-import { useSQLiteContext } from "expo-sqlite/next";
+import { useSQLiteContext } from "expo-sqlite";
 import { TouchableOpacity } from "react-native";
 import { icons } from "../../constants";
 import moment from "moment";
@@ -38,13 +38,15 @@ const Create = () => {
   };
 
   async function getData() {
-    const result = await db.getAllAsync(`SELECT * FROM Categories;`);
+    const result = await db.getAllAsync(
+      `SELECT * FROM Categories ORDER BY id DESC;`
+    );
     setBooks(result);
   }
 
   async function addBook(name, quantity, catt) {
     if (!name || !quantity || !catt) {
-      console.error(
+      Alert.alert(
         "Please provide a title, quantity, and category for the book."
       );
       return;
@@ -55,10 +57,6 @@ const Create = () => {
         await db.runAsync(
           `INSERT INTO Books(name, quantity, category_id) VALUES (?, ?, ?);`,
           [form.name, form.quantity, cat] // Use selectedCategory here
-        );
-        const category = await db.getAllAsync(
-          `SELECT category FROM Categories WHERE id = ?`,
-          [cat]
         ); // Log the activity
         await db.runAsync(
           `INSERT INTO Activities (action, timestamp, book_title, book_quantity, category_name) VALUES (?, ?, ?, ?, ?)`,
@@ -70,7 +68,6 @@ const Create = () => {
             selectedItem,
           ]
         );
-        console.log(form.name, form.quantity, cat);
         await getData(); //Update book list after adding
         await fetchActivityLogs();
         setForm({ name: "", quantity: "" });
@@ -78,9 +75,9 @@ const Create = () => {
         setSelectedItem(null);
         setShowList(false);
       });
-      console.log("Book added successfully!\nAlso"); // Handle success scenario
+      Alert.alert("Book added successfully!"); // Handle success scenario
     } catch (error) {
-      console.error("Error adding book:", error); // Handle error scenario
+      Alert.alert("Error adding book!"); // Handle error scenario
     }
     //addingActivitiesTable();
   }
@@ -133,7 +130,7 @@ const Create = () => {
               value={form.quantity}
               handleChangeText={(e) => setForm({ ...form, quantity: e })}
               otherStyles="mt-4"
-              keyboardType="number"
+              keyboardType="numeric"
             />
           </View>
           <TouchableOpacity
@@ -151,22 +148,27 @@ const Create = () => {
           </TouchableOpacity>
           {showList && (
             <View>
-              {books.map((book, index) => {
-                return (
-                  <TouchableOpacity key={index}>
-                    <Books
-                      key={index}
-                      handlePress={() => addCategoryId(book.category, book.id)}
-                      title={book.category}
-                    />
-                  </TouchableOpacity>
-                );
-              })}
+              {books.map((item) => (
+                <TouchableOpacity key={item.id}>
+                  <Books
+                    handlePress={() => addCategoryId(item.category, item.id)}
+                    title={item.category}
+                  />
+                </TouchableOpacity>
+              ))}
+              <FormField
+                title="Quantity"
+                value={selectedItem}
+                handleChangeText={(e) => setSelectedItem(e)}
+                otherStyles="mt-4"
+              />
             </View>
           )}
           <CustomButton
             title="- ADD -"
-            handlePress={() => addBook(form.name, form.quantity, cat)}
+            handlePress={() =>
+              addBook(form.name, form.quantity, cat || selectedItem)
+            }
             containerStyles="w-full mt-5"
           />
         </View>

@@ -8,6 +8,7 @@ const FormField = ({
   placeholder,
   handleChangeText,
   otherStyles,
+  keyboardType,
 }) => {
   return (
     <View
@@ -21,6 +22,7 @@ const FormField = ({
         placeholder={placeholder}
         placeholderTextColor="#7B7B8B"
         onChangeText={handleChangeText}
+        keyboardType={keyboardType}
       />
     </View>
   );

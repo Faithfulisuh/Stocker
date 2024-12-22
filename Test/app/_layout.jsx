@@ -4,7 +4,7 @@ import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
 import { useFonts } from "expo-font";
 import { Suspense, useEffect, useState } from "react";
-import { SQLiteProvider } from "expo-sqlite/next";
+import { SQLiteProvider } from "expo-sqlite";
 
 const RootLayout = () => {
   const [dbLoaded, setDbLoaded] = useState(false);
